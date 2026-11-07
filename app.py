@@ -28,6 +28,7 @@ else:
     year_range = (min_year, max_year)   # slider errors if min == max
 
 min_val, max_val = float(df["lifeExp"].min()), float(df["lifeExp"].max())
+
 value_range = st.sidebar.slider("lifeExp", min_val, max_val, (min_val, max_val))
 
 # Apply filters
@@ -45,9 +46,19 @@ c1.metric("Rows", f"{len(filtered):,}")
 c2.metric("Global Mean Life Expectancy", f"{filtered['lifeExp'].mean():,.0f}")
 c3.metric("Global Mean Life Expectancy, 2007", f"{filtered['lifeExp'][filtered['year'] == 2007].mean():,.1f}")
 
-yearly = filtered.groupby(["year", "continent"], as_index=False)["lifeExp"].sum()
-line_fig = px.line(yearly, x="year", y="lifeExp", color="continent", markers=True)
-line_fig.update_xaxes(dtick=1)   # whole-number year ticks, no 2019.5
+# Line plot
+yearly = df.groupby(["year", "continent"], as_index=False)["lifeExp"].mean()
+
+line_fig = px.line(yearly, 
+                   x="year", 
+                   y="lifeExp", 
+                   color="continent", 
+                   markers=True)
+#line_fig.update_xaxes(dtick=5)   # whole-number year ticks, no 2019.5
+line_fig.update_yaxes(
+    dtick=None,
+    nticks=8
+)
 
 left, right = st.columns(2)
 left.plotly_chart(line_fig, use_container_width=True)
@@ -57,4 +68,4 @@ right.plotly_chart(
     use_container_width=True,
 )
 
-st.dataframe(filtered, use_container_width=True)
+#st.dataframe(filtered, use_container_width=True)
