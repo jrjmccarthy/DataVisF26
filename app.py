@@ -42,8 +42,8 @@ filtered = df[mask]
 st.title("My Dashboard")
 c1, c2, c3 = st.columns(3)
 c1.metric("Rows", f"{len(filtered):,}")
-c2.metric("Total value", f"{filtered['lifeExp'].sum():,.0f}")
-c3.metric("Average", f"{filtered['lifeExp'].mean():,.1f}")
+c2.metric("Global Mean Life Expectancy", f"{filtered['lifeExp'].mean():,.0f}")
+c3.metric("Global Mean Life Expectancy, 2007", f"{filtered['lifeExp'][filtered['year'] == 2007].mean():,.1f}")
 
 yearly = filtered.groupby(["year", "continent"], as_index=False)["lifeExp"].sum()
 line_fig = px.line(yearly, x="year", y="lifeExp", color="continent", markers=True)
