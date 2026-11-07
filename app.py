@@ -45,7 +45,7 @@ c1, c2, c3, c4 = st.columns(4)
 c1.metric("Peru Life Expectancy, 2007", f"{filtered['lifeExp'][(filtered['year'] == 2007) & (filtered['country'] == 'Peru')].mean():,.0f}")
 c2.metric("Global Mean Life Expectancy, 2007", f"{filtered['lifeExp'].mean():,.0f}")
 c3.metric("Peru Population, 2007", f"{filtered['pop'][(filtered['year'] == 2007) & (filtered['country'] == 'Peru')]:,.1f}")
-c3.metric("Peru GDP per Capita, 2007", f"{filtered['gdpPercap'][(filtered['year'] == 2007) & (filtered['country'] == 'Peru')]:,.1f}")
+c4.metric("Peru GDP per Capita, 2007", f"{filtered['gdpPercap'][(filtered['year'] == 2007) & (filtered['country'] == 'Peru')]:,.1f}")
 
 
 # Line plot
