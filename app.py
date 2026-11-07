@@ -25,23 +25,22 @@ focus = st.sidebar.selectbox("Focus country", country_list, index=default_idx)
 years = sorted(df["year"].unique())
 snapshot_year = st.sidebar.selectbox("Snapshot year", years, index=len(years) - 1)
 
-continents = st.sidebar.multiselect(
-    "Continent", df["continent"].unique(), default=list(df["continent"].unique())
-)
+#continents = st.sidebar.multiselect(
+#    "Continent", df["continent"].unique(), default=list(df["continent"].unique())
+#)
 
 min_year, max_year = int(df["year"].min()), int(df["year"].max())
-year_range = st.sidebar.slider("Year range (bar chart)", min_year, max_year, (min_year, max_year))
+#year_range = st.sidebar.slider("Year range (bar chart)", min_year, max_year, (min_year, max_year))
 
 min_val, max_val = float(df["lifeExp"].min()), float(df["lifeExp"].max())
-value_range = st.sidebar.slider("Life expectancy", min_val, max_val, (min_val, max_val))
+#value_range = st.sidebar.slider("Life expectancy", min_val, max_val, (min_val, max_val))
 
 # ---------- Filtered data (for the bubble background and bar chart) ----------
-mask = (
-    df["continent"].isin(continents)
-    & df["year"].between(*year_range)
-    & df["lifeExp"].between(*value_range)
-)
-filtered = df[mask]
+#mask = (
+#    df["continent"].isin(continents)
+#    & df["year"].between(*year_range)
+#)
+filtered = df
 
 # ---------- Helpers ----------
 def country_value(country, year, column):
