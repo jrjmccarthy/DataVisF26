@@ -8,7 +8,7 @@ st.set_page_config(page_title="My Dashboard", layout="wide")
 
 @st.cache_data
 def load_data():
-    df = pd.read_csv('C:/Users/jmcca/OneDrive/Documents/CUNY/Data Visualization/Homework/assignment_3/gapminder_data.tsv', 
+    df = pd.read_csv('gapminder_data.tsv', 
                         sep='\t')
     df["year"] = df["year"].astype(int)   # make sure it's a plain integer
     return df
