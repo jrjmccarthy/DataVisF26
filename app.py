@@ -45,10 +45,14 @@ c1, c2, c3 = st.columns(3)
 c1.metric("Rows", f"{len(filtered):,}")
 c2.metric("Global Mean Life Expectancy", f"{filtered['lifeExp'].mean():,.0f}")
 c3.metric("Global Mean Life Expectancy, 2007", f"{filtered['lifeExp'][filtered['year'] == 2007].mean():,.1f}")
+'''
+yearly = filtered.groupby(["year", "continent"], as_index=False)["lifeExp"].sum()
+line_fig = px.line(yearly, x="year", y="lifeExp", color="continent", markers=True)
+line_fig.update_xaxes(dtick=1)   # whole-number year ticks, no 2019.5
+'''
 
 # Line plot
-yearly = df.groupby(["year", "continent"], as_index=False)["lifeExp"].mean()
-
+yearly = filtered.groupby(["year", "continent"], as_index=False)["lifeExp"].mean()
 line_fig = px.line(yearly, 
                    x="year", 
                    y="lifeExp", 
