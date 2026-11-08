@@ -2,7 +2,6 @@
 import numpy as np
 import pandas as pd
 import streamlit as st
-import plotly.express as px
 import plotly.graph_objects as go
 
 st.set_page_config(page_title="My Dashboard", layout="wide")
@@ -15,6 +14,15 @@ def load_data():
 
 df = load_data()
 
+PINK = "#FF00BF"
+continent_colors = {
+    "Asia": "#4C78A8",
+    "Europe": "#F2CF5B",
+    "Africa": "#E45756",
+    "Americas": "#72B7B2",
+    "Oceania": "#B279A2",
+}
+
 # ---------- Sidebar ----------
 st.sidebar.header("Filters")
 
@@ -25,22 +33,21 @@ focus = st.sidebar.selectbox("Focus country", country_list, index=default_idx)
 years = sorted(df["year"].unique())
 snapshot_year = st.sidebar.selectbox("Snapshot year", years, index=len(years) - 1)
 
-#continents = st.sidebar.multiselect(
-#    "Continent", df["continent"].unique(), default=list(df["continent"].unique())
-#)
-
-min_year, max_year = int(df["year"].min()), int(df["year"].max())
-#year_range = st.sidebar.slider("Year range (bar chart)", min_year, max_year, (min_year, max_year))
+continents = st.sidebar.multiselect(
+    "Continent (bubble chart)", df["continent"].unique(),
+    default=list(df["continent"].unique())
+)
 
 min_val, max_val = float(df["lifeExp"].min()), float(df["lifeExp"].max())
-#value_range = st.sidebar.slider("Life expectancy", min_val, max_val, (min_val, max_val))
+value_range = st.sidebar.slider("Life expectancy (bubble chart)",
+                                min_val, max_val, (min_val, max_val))
 
-# ---------- Filtered data (for the bubble background and bar chart) ----------
-#mask = (
-#    df["continent"].isin(continents)
-#    & df["year"].between(*year_range)
-#)
-filtered = df
+# ---------- Filtered data (bubble chart background) ----------
+mask = (
+    df["continent"].isin(continents)
+    & df["lifeExp"].between(*value_range)
+)
+filtered = df[mask]
 
 # ---------- Helpers ----------
 def country_value(country, year, column):
@@ -50,7 +57,7 @@ def country_value(country, year, column):
 def fmt(value, decimals=0, prefix=""):
     return "N/A" if value is None else f"{prefix}{value:,.{decimals}f}"
 
-# ---------- KPIs (use the focus country, ignoring the other filters) ----------
+# ---------- KPIs ----------
 st.title("My Dashboard")
 c1, c2, c3, c4 = st.columns(4)
 c1.metric(f"{focus} Life Expectancy, {snapshot_year}",
@@ -66,16 +73,9 @@ c4.metric(f"{focus} GDP per Capita, {snapshot_year}",
 data_year = filtered[filtered["year"] == snapshot_year]
 focus_df = df[df["country"] == focus].sort_values("year")
 
-continent_colors = {
-    "Asia": "#4C78A8",
-    "Europe": "#F2CF5B",
-    "Africa": "#E45756",
-    "Americas": "#72B7B2",
-    "Oceania": "#B279A2",
-}
-
 # Fixed scale so bubble sizes don't change when filters change
 sizeref = 2.0 * df["pop"].max() / (100 ** 2)
+BG_OPACITY = 0.30
 
 fig = go.Figure()
 
@@ -87,7 +87,7 @@ for continent, color in continent_colors.items():
         mode="markers",
         name=continent,
         marker=dict(size=cdf["pop"], sizemode="area", sizeref=sizeref,
-                    sizemin=4, color=color, opacity=0.30,
+                    sizemin=4, color=color, opacity=BG_OPACITY,
                     line=dict(width=0.5, color="white")),
         customdata=cdf[["country", "pop"]],
         hovertemplate=("<b>%{customdata[0]}</b><br>"
@@ -96,16 +96,18 @@ for continent, color in continent_colors.items():
                        "Population: %{customdata[1]:,.0f}<extra></extra>"),
     ))
 
-# Focus country's historical path
+# Focus country: full opacity for the snapshot year, same as the others otherwise
+focus_opacity = [1.0 if y == snapshot_year else BG_OPACITY for y in focus_df["year"]]
+
 fig.add_trace(go.Scatter(
     x=focus_df["gdpPercap"],
     y=focus_df["lifeExp"],
     mode="lines+markers",
     name=focus,
-    line=dict(color="black", width=1.5),
+    line=dict(color="black", width=0.75),
     marker=dict(size=focus_df["pop"], sizemode="area", sizeref=sizeref,
-                sizemin=4, color="#FF00BF", opacity=1,
-                line=dict(width=0.5, color="white")),
+                sizemin=4, color=PINK, opacity=focus_opacity,
+                line=dict(width=0.75, color="black")),
     customdata=focus_df[["year", "pop"]],
     hovertemplate=(f"<b>{focus}</b><br>"
                    "Year: %{customdata[0]}<br>"
@@ -131,11 +133,33 @@ fig.update_xaxes(
     ticktext=[f"${x:,.0f}" for x in tick_vals],
 )
 
+# ---------- Horizontal bar chart: focus country's continent ----------
+focus_continent = df.loc[df["country"] == focus, "continent"].iloc[0]
+
+# Ascending order puts the highest life expectancy at the top of a horizontal bar chart
+bar_df = (df[(df["continent"] == focus_continent) & (df["year"] == snapshot_year)]
+          .sort_values("lifeExp"))
+
+bar_colors = [PINK if c == focus else continent_colors[focus_continent]
+              for c in bar_df["country"]]
+
+bar_fig = go.Figure(go.Bar(
+    x=bar_df["lifeExp"],
+    y=bar_df["country"],
+    orientation="h",
+    marker_color=bar_colors,
+    hovertemplate="<b>%{y}</b><br>Life expectancy: %{x:.1f}<extra></extra>",
+))
+bar_fig.update_layout(
+    title=f"Life Expectancy in {focus_continent} ({snapshot_year})",
+    xaxis_title="Life Expectancy (years)",
+    yaxis=dict(categoryorder="array", categoryarray=bar_df["country"].tolist()),
+    template="plotly_white",
+    height=max(650, 18 * len(bar_df) + 120),   # taller for big continents like Africa
+    showlegend=False,
+)
+
 # ---------- Layout ----------
 left, right = st.columns(2)
 left.plotly_chart(fig, use_container_width=True)
-
-bar_df = filtered.groupby("continent", as_index=False)["lifeExp"].mean()
-bar_fig = px.bar(bar_df, x="continent", y="lifeExp",
-                 title="Mean Life Expectancy by Continent (filtered years)")
 right.plotly_chart(bar_fig, use_container_width=True)
