@@ -31,7 +31,7 @@ st.markdown(
 
     /* Value KPIs: bold red values, bold titles */
     [data-testid="stMetricValue"] {font-size: 1.5rem; font-weight: 700;}
-    [data-testid="stMetricLabel"] p {font-size: 0.75rem;}
+    [data-testid="stMetricLabel"] p {font-size: 1.05rem;}   /* all KPI titles = rank value size */
     .st-key-value_row [data-testid="stMetricValue"],
     .st-key-value_row [data-testid="stMetricValue"] * {color: #D7191C !important;}
     .st-key-value_row [data-testid="stMetricLabel"],
@@ -39,7 +39,7 @@ st.markdown(
 
     /* Rank KPIs: smaller than the value KPIs */
     .st-key-rank_row [data-testid="stMetricValue"] {font-size: 1.05rem; font-weight: 400;}
-    .st-key-rank_row [data-testid="stMetricLabel"] p {font-size: 0.65rem;}
+    .st-key-rank_row [data-testid="stMetricLabel"] p {font-size: 1.05rem;}
     </style>
     """,
     unsafe_allow_html=True,
