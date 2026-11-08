@@ -188,7 +188,7 @@ fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
     title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} ({snapshot_year})",
                font=dict(size=14),
-               subtitle=dict(text="X-axis: GDP per capita ($)  ·  Y-axis: Life Expectancy (years)",
+               subtitle=dict(text="GDP per capita ($) versus Life Expectancy (years), sized by Population",
                              font=dict(size=12, color="#555555"))),
     template="plotly_white",
     legend=dict(x=0.02, y=0.98),
