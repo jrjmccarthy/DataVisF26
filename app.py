@@ -56,6 +56,9 @@ mask = (
 filtered = df[mask]
 
 # ---------- Helpers ----------
+year_df = df[df["year"] == snapshot_year]
+continent_year_df = year_df[year_df["continent"] == focus_continent]
+
 def country_value(country, year, column):
     s = df.loc[(df["country"] == country) & (df["year"] == year), column]
     return s.iloc[0] if not s.empty else None
@@ -63,17 +66,27 @@ def country_value(country, year, column):
 def fmt(value, decimals=0, prefix=""):
     return "N/A" if value is None else f"{prefix}{value:,.{decimals}f}"
 
+def rank_text(column):
+    """Rank of the focus country within its continent for the snapshot year (1 = highest)."""
+    value = country_value(focus, snapshot_year, column)
+    if value is None:
+        return "N/A"
+    rank = int((continent_year_df[column] > value).sum()) + 1
+    return f"#{rank} of {len(continent_year_df)}"
+
 # ---------- KPIs ----------
 st.title("My Dashboard")
-c1, c2, c3, c4 = st.columns(4)
+c1, c2, c3, c4, c5 = st.columns(5)
 c1.metric(f"{focus} Life Expectancy, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "lifeExp"), 1))
-c2.metric(f"Global Mean Life Expectancy, {snapshot_year}",
-          fmt(df.loc[df["year"] == snapshot_year, "lifeExp"].mean(), 1))
-c3.metric(f"{focus} Population, {snapshot_year}",
-          fmt(country_value(focus, snapshot_year, "pop")))
-c4.metric(f"{focus} GDP per Capita, {snapshot_year}",
+c2.metric(f"Life Exp. Rank in {focus_continent}, {snapshot_year}",
+          rank_text("lifeExp"))
+c3.metric(f"{focus} GDP per Capita, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "gdpPercap"), 0, "$"))
+c4.metric(f"GDP per Capita Rank in {focus_continent}, {snapshot_year}",
+          rank_text("gdpPercap"))
+c5.metric(f"{focus} Population, {snapshot_year}",
+          fmt(country_value(focus, snapshot_year, "pop")))
 
 # ---------- Bubble chart ----------
 data_year = filtered[filtered["year"] == snapshot_year]
@@ -139,36 +152,46 @@ fig.update_xaxes(
     ticktext=[f"${x:,.0f}" for x in tick_vals],
 )
 
-# ---------- Bar chart: country vs. continent mean vs. global mean ----------
-year_df = df[df["year"] == snapshot_year]
-country_le = country_value(focus, snapshot_year, "lifeExp")
-continent_mean = year_df.loc[year_df["continent"] == focus_continent, "lifeExp"].mean()
-global_mean = year_df["lifeExp"].mean()
+# ---------- Comparison bar charts (country vs. continent mean vs. global mean) ----------
+def comparison_bar(column, metric_name, prefix="", decimals=1):
+    items = [
+        (focus, country_value(focus, snapshot_year, column), PINK),
+        (f"{focus_continent} mean", continent_year_df[column].mean(),
+         continent_colors[focus_continent]),
+        ("Global mean", year_df[column].mean(), GLOBAL_GRAY),
+    ]
+    items = [i for i in items if i[1] is not None]
+    items.sort(key=lambda t: t[1], reverse=True)   # highest to lowest
 
-labels = [focus, f"{focus_continent} mean", "Global mean"]
-values = [country_le, continent_mean, global_mean]
-colors = [PINK, continent_colors[focus_continent], GLOBAL_GRAY]
+    labels = [i[0] for i in items]
+    values = [i[1] for i in items]
+    colors = [i[2] for i in items]
 
-bar_fig = go.Figure(go.Bar(
-    x=values,
-    y=labels,
-    orientation="h",
-    marker_color=colors,
-    text=[f"{v:.1f}" if v is not None else "N/A" for v in values],
-    textposition="outside",
-    hovertemplate="<b>%{y}</b><br>Life expectancy: %{x:.1f}<extra></extra>",
-))
-bar_fig.update_layout(
-    title=f"Life Expectancy: {focus} vs. {focus_continent} vs. World ({snapshot_year})",
-    xaxis_title="Life Expectancy (years)",
-    xaxis=dict(range=[0, max(v for v in values if v is not None) * 1.15]),
-    yaxis=dict(autorange="reversed"),   # first label on top
-    template="plotly_white",
-    height=350,
-    showlegend=False,
-)
+    bar = go.Figure(go.Bar(
+        x=values,
+        y=labels,
+        orientation="h",
+        marker_color=colors,
+        text=[f"{prefix}{v:,.{decimals}f}" for v in values],
+        textposition="outside",
+        hovertemplate=f"<b>%{{y}}</b><br>{metric_name}: {prefix}%{{x:,.{decimals}f}}<extra></extra>",
+    ))
+    bar.update_layout(
+        title=f"{metric_name}: {focus} vs. {focus_continent} vs. World ({snapshot_year})",
+        xaxis_title=metric_name,
+        xaxis=dict(range=[0, max(values) * 1.2]),
+        yaxis=dict(autorange="reversed"),   # first (highest) bar on top
+        template="plotly_white",
+        height=320,
+        showlegend=False,
+    )
+    return bar
+
+le_bar = comparison_bar("lifeExp", "Life Expectancy (years)", decimals=1)
+gdp_bar = comparison_bar("gdpPercap", "GDP per Capita ($)", prefix="$", decimals=0)
 
 # ---------- Layout ----------
 left, right = st.columns(2)
 left.plotly_chart(fig, use_container_width=True)
-right.plotly_chart(bar_fig, use_container_width=True)
+right.plotly_chart(le_bar, use_container_width=True)
+right.plotly_chart(gdp_bar, use_container_width=True)
