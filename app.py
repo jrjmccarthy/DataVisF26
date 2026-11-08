@@ -18,12 +18,8 @@ continent_colors = {
     "Americas": "#9B59B6",   # violet
     "Oceania": "#8C6D4F",    # brown
 }
-BG_OPACITY = 0.30   # continent opacity, shared by the bubbles and the bars
-
-def with_opacity(hex_color, opacity):
-    h = hex_color.lstrip("#")
-    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
-    return f"rgba({r},{g},{b},{opacity})"
+CONTINENT_OPACITY = 1.0        # continent bubbles and bars are fully solid
+FOCUS_OTHER_YEAR_OPACITY = 0.30   # the focus country's non-snapshot years stay faded
 
 # ---------- Compact styling ----------
 st.markdown(
@@ -33,9 +29,12 @@ st.markdown(
     div[data-testid="stVerticalBlock"] {gap: 0.4rem;}
     h3 {padding: 0; margin: 0;}
 
-    /* Value KPIs: bold */
+    /* Value KPIs: bold red values, bold titles */
     div[data-testid="stMetricValue"] {font-size: 1.5rem; font-weight: 700;}
     div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
+    .st-key-value_row div[data-testid="stMetricValue"],
+    .st-key-value_row div[data-testid="stMetricValue"] * {color: #D7191C;}
+    .st-key-value_row div[data-testid="stMetricLabel"] p {font-weight: 700;}
 
     /* Rank KPIs: smaller than the value KPIs */
     .st-key-rank_row div[data-testid="stMetricValue"] {font-size: 1.05rem; font-weight: 400;}
@@ -103,13 +102,14 @@ def rank_text(column):
 st.markdown(f"### {focus}'s Gapminder Dashboard")
 
 # Row 1: numeric KPIs (bold)
-n1, n2, n3 = st.columns(3)
-n1.metric(f"Life Expectancy, {snapshot_year}",
-          fmt(country_value(focus, snapshot_year, "lifeExp"), 1))
-n2.metric(f"GDP per Capita, {snapshot_year}",
-          fmt(country_value(focus, snapshot_year, "gdpPercap"), 0, "$"))
-n3.metric(f"Population, {snapshot_year}",
-          fmt(country_value(focus, snapshot_year, "pop")))
+with st.container(key="value_row"):
+    n1, n2, n3 = st.columns(3)
+    n1.metric(f"Life Expectancy, {snapshot_year}",
+              fmt(country_value(focus, snapshot_year, "lifeExp"), 1))
+    n2.metric(f"GDP per Capita, {snapshot_year}",
+              fmt(country_value(focus, snapshot_year, "gdpPercap"), 0, "$"))
+    n3.metric(f"Population, {snapshot_year}",
+              fmt(country_value(focus, snapshot_year, "pop")))
 
 # Row 2: rank KPIs (smaller), directly beneath their numeric KPIs
 with st.container(key="rank_row"):
@@ -135,7 +135,7 @@ for continent, color in continent_colors.items():
         mode="markers",
         name=continent,
         marker=dict(size=cdf["pop"], sizemode="area", sizeref=sizeref,
-                    sizemin=4, color=color, opacity=BG_OPACITY,
+                    sizemin=4, color=color, opacity=CONTINENT_OPACITY,
                     line=dict(width=0.5, color="white")),
         customdata=cdf[["country", "pop"]],
         hovertemplate=("<b>%{customdata[0]}</b><br>"
@@ -145,7 +145,7 @@ for continent, color in continent_colors.items():
     ))
 
 # Focus country: full opacity for the snapshot year, same as the others otherwise
-focus_opacity = [1.0 if y == snapshot_year else BG_OPACITY for y in focus_df["year"]]
+focus_opacity = [1.0 if y == snapshot_year else FOCUS_OTHER_YEAR_OPACITY for y in focus_df["year"]]
 
 fig.add_trace(go.Scatter(
     x=focus_df["gdpPercap"],
@@ -168,7 +168,7 @@ fig.add_trace(go.Scatter(
 comparison_label = continents[0] if len(continents) == 1 else "World"
 
 fig.update_layout(
-    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} ({snapshot_year})",
+    title=dict(text=f"{focus}'s Development Over Time Compared to {comparison_label} ({snapshot_year})",
                font=dict(size=14)),
     xaxis_title="GDP per capita ($)",
     yaxis_title="Life Expectancy (years)",
@@ -210,10 +210,10 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
 
     labels = [i[0] for i in items]
     values = [i[1] for i in items]
-    colors = [with_opacity(i[2], BG_OPACITY) if i[3] else i[2] for i in items]
+    colors = [i[2] for i in items]   # solid colors, no fading
     # Black outline around the selected country's bar only
     line_colors = ["black" if i[4] else "white" for i in items]
-    line_widths = [0.75 if i[4] else 0.5 for i in items]
+    line_widths = [1.5 if i[4] else 0.5 for i in items]
 
     if extra_continents:
         title = f"{metric_name}: {focus} vs. Continents vs. World ({snapshot_year})"
