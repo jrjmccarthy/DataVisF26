@@ -186,9 +186,9 @@ comparison_label = continents[0] if len(continents) == 1 else "World"
 
 fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
-    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} ({snapshot_year})",
+    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label}",
                font=dict(size=14),
-               subtitle=dict(text="GDP per capita ($) versus Life Expectancy (years), sized by Population",
+               subtitle=dict(text=f"GDP per capita ($) versus Life Expectancy (years) in {snapshot_year}, sized by Population",
                              font=dict(size=12, color="#555555"))),
     template="plotly_white",
     legend=dict(x=0.02, y=0.98),
@@ -234,9 +234,9 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
     line_widths = [0.75 if i[4] else 0.5 for i in items]
 
     if extra_continents:
-        title = f"{metric_name}: {focus} vs. Continents vs. World ({snapshot_year})"
+        title = f"{metric_name}: {focus} vs. Continents vs. World"
     else:
-        title = f"{metric_name}: {focus} vs. {focus_continent} vs. World ({snapshot_year})"
+        title = f"{metric_name}: {focus} vs. {focus_continent} vs. World"
 
     bar = go.Figure(go.Bar(
         x=values,
