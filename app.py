@@ -7,16 +7,16 @@ import plotly.graph_objects as go
 st.set_page_config(page_title="Gapminder Dashboard", layout="wide")
 
 # ---------- Colors ----------
-# Red is reserved for the focus country. The continent colors avoid red,
-# orange and pink hues so nothing competes with it.
+# Red is reserved for the focus country. The continent colors avoid red hues
+# and are spread across blue, gold, green, violet and brown so they stay distinct.
 FOCUS_RED = "#D7191C"
 GLOBAL_GRAY = "#7F7F7F"
 continent_colors = {
-    "Asia": "#4C78A8",       # blue
+    "Asia": "#1F78B4",       # strong blue
     "Europe": "#EDC948",     # gold
-    "Africa": "#59A14F",     # green
-    "Americas": "#2CB5C0",   # cyan-teal
-    "Oceania": "#8E6BBF",    # purple
+    "Africa": "#4CA64C",     # green
+    "Americas": "#9B59B6",   # violet
+    "Oceania": "#8C6D4F",    # brown
 }
 
 # ---------- Compact styling ----------
@@ -24,8 +24,10 @@ st.markdown(
     f"""
     <style>
     .block-container {{padding-top: 2.5rem; padding-bottom: 0.5rem;}}
-    div[data-testid="stMetricValue"] {{font-size: 1.5rem; color: {FOCUS_RED};}}
-    div[data-testid="stMetricLabel"] p {{font-size: 0.75rem;}}
+    div[data-testid="stMetricValue"],
+    div[data-testid="stMetricValue"] * {{font-size: 1.5rem; color: {FOCUS_RED};}}
+    div[data-testid="stMetricLabel"],
+    div[data-testid="stMetricLabel"] * {{font-size: 0.75rem; color: {FOCUS_RED};}}
     div[data-testid="stVerticalBlock"] {{gap: 0.4rem;}}
     h3 {{padding: 0; margin: 0;}}
     </style>
@@ -35,7 +37,7 @@ st.markdown(
 
 # Tweak these two numbers to make the charts taller or shorter
 BUBBLE_H = 470
-BAR_H = 230
+BAR_H = 230          # height with the default 3 bars; grows a little per extra bar
 
 @st.cache_data
 def load_data():
@@ -59,7 +61,7 @@ snapshot_year = st.sidebar.selectbox("Snapshot year", years, index=len(years) - 
 # The key includes the focus country, so the default resets to that
 # country's continent whenever a new focus country is picked.
 continents = st.sidebar.multiselect(
-    "Continent (bubble chart)",
+    "Continent (bubble chart and bar charts)",
     options=list(df["continent"].unique()),
     default=[focus_continent],
     key=f"continents_{focus}",
@@ -183,7 +185,11 @@ fig.update_xaxes(
     ticktext=[f"${x:,.0f}" for x in tick_vals],
 )
 
-# ---------- Comparison bar charts (country vs. continent mean vs. global mean) ----------
+# ---------- Comparison bar charts ----------
+# Always: focus country, its continent's mean, and the global mean.
+# Plus: the mean of every other continent selected in the sidebar filter.
+extra_continents = [c for c in continents if c != focus_continent]
+
 def comparison_bar(column, metric_name, prefix="", decimals=1):
     items = [
         (focus, country_value(focus, snapshot_year, column), FOCUS_RED),
@@ -191,12 +197,22 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
          continent_colors[focus_continent]),
         ("Global mean", year_df[column].mean(), GLOBAL_GRAY),
     ]
-    items = [i for i in items if i[1] is not None]
+    for c in extra_continents:
+        items.append((f"{c} mean",
+                      year_df.loc[year_df["continent"] == c, column].mean(),
+                      continent_colors[c]))
+
+    items = [i for i in items if i[1] is not None and not pd.isna(i[1])]
     items.sort(key=lambda t: t[1], reverse=True)   # highest to lowest
 
     labels = [i[0] for i in items]
     values = [i[1] for i in items]
     colors = [i[2] for i in items]
+
+    if extra_continents:
+        title = f"{metric_name}: {focus} vs. Continents vs. World ({snapshot_year})"
+    else:
+        title = f"{metric_name}: {focus} vs. {focus_continent} vs. World ({snapshot_year})"
 
     bar = go.Figure(go.Bar(
         x=values,
@@ -208,12 +224,11 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         hovertemplate=f"<b>%{{y}}</b><br>{metric_name}: {prefix}%{{x:,.{decimals}f}}<extra></extra>",
     ))
     bar.update_layout(
-        title=dict(text=f"{metric_name}: {focus} vs. {focus_continent} vs. World ({snapshot_year})",
-                   font=dict(size=14)),
+        title=dict(text=title, font=dict(size=14)),
         xaxis=dict(range=[0, max(values) * 1.2]),
         yaxis=dict(autorange="reversed"),   # first (highest) bar on top
         template="plotly_white",
-        height=BAR_H,
+        height=BAR_H + 20 * len(extra_continents),
         margin=dict(l=10, r=10, t=40, b=10),
         font=dict(size=11),
         showlegend=False,
