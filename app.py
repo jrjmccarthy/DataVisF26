@@ -4,7 +4,7 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="Gapminder Dashboard", layout="wide")
+st.set_page_config(page_title="McCarthy Gapminder Dashboard", layout="wide")
 
 # ---------- Colors ----------
 # Red is reserved for the focus country. The continent colors avoid red hues
