@@ -111,9 +111,9 @@ n3.metric(f"Population, {snapshot_year}",
 
 # Row 2: rank KPIs, directly beneath their numeric KPIs
 r1, r2, r3 = st.columns(3)
-r1.metric(f"Life Expectancy Rank in {focus_continent}", rank_text("lifeExp"))
-r2.metric(f"GDP per Capita Rank in {focus_continent}", rank_text("gdpPercap"))
-r3.metric(f"Population Rank in {focus_continent}", rank_text("pop"))
+r1.metric(f"Life Expectancy Rank in {focus_continent}, {snapshot_year}", rank_text("lifeExp"))
+r2.metric(f"GDP per Capita Rank in {focus_continent}, {snapshot_year}", rank_text("gdpPercap"))
+r3.metric(f"Population Rank in {focus_continent}, {snapshot_year}", rank_text("pop"))
 
 # ---------- Bubble chart ----------
 data_year = filtered[filtered["year"] == snapshot_year]
@@ -165,7 +165,7 @@ fig.add_trace(go.Scatter(
 comparison_label = continents[0] if len(continents) == 1 else "World"
 
 fig.update_layout(
-    title=dict(text=f"{focus}'s Development Over Time Compared to {comparison_label} ({snapshot_year})",
+    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} ({snapshot_year})",
                font=dict(size=14)),
     xaxis_title="GDP per capita ($)",
     yaxis_title="Life Expectancy (years)",
