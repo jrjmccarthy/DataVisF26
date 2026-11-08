@@ -4,17 +4,30 @@ import pandas as pd
 import streamlit as st
 import plotly.graph_objects as go
 
-st.set_page_config(page_title="My Dashboard", layout="wide")
+st.set_page_config(page_title="Gapminder Dashboard", layout="wide")
+
+# ---------- Colors ----------
+# Red is reserved for the focus country. The continent colors avoid red,
+# orange and pink hues so nothing competes with it.
+FOCUS_RED = "#D7191C"
+GLOBAL_GRAY = "#7F7F7F"
+continent_colors = {
+    "Asia": "#4C78A8",       # blue
+    "Europe": "#EDC948",     # gold
+    "Africa": "#59A14F",     # green
+    "Americas": "#2CB5C0",   # cyan-teal
+    "Oceania": "#8E6BBF",    # purple
+}
 
 # ---------- Compact styling ----------
 st.markdown(
-    """
+    f"""
     <style>
-    .block-container {padding-top: 2.5rem; padding-bottom: 0.5rem;}
-    div[data-testid="stMetricValue"] {font-size: 1.5rem;}
-    div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
-    div[data-testid="stVerticalBlock"] {gap: 0.4rem;}
-    h3 {padding: 0; margin: 0;}
+    .block-container {{padding-top: 2.5rem; padding-bottom: 0.5rem;}}
+    div[data-testid="stMetricValue"] {{font-size: 1.5rem; color: {FOCUS_RED};}}
+    div[data-testid="stMetricLabel"] p {{font-size: 0.75rem;}}
+    div[data-testid="stVerticalBlock"] {{gap: 0.4rem;}}
+    h3 {{padding: 0; margin: 0;}}
     </style>
     """,
     unsafe_allow_html=True,
@@ -31,16 +44,6 @@ def load_data():
     return df
 
 df = load_data()
-
-PINK = "#FF00BF"
-GLOBAL_GRAY = "#7F7F7F"
-continent_colors = {
-    "Asia": "#4C78A8",
-    "Europe": "#F2CF5B",
-    "Africa": "#E45756",
-    "Americas": "#72B7B2",
-    "Oceania": "#B279A2",
-}
 
 # ---------- Sidebar ----------
 st.sidebar.header("Filters")
@@ -92,8 +95,8 @@ def rank_text(column):
     rank = int((continent_year_df[column] > value).sum()) + 1
     return f"#{rank} of {len(continent_year_df)}"
 
-# ---------- KPIs ----------
-st.markdown(f"### {focus} Dashboard")
+# ---------- Title and KPIs ----------
+st.markdown(f"### {focus}'s Gapminder Dashboard")
 
 # Row 1: numeric KPIs
 n1, n2, n3 = st.columns(3)
@@ -147,7 +150,7 @@ fig.add_trace(go.Scatter(
     name=focus,
     line=dict(color="black", width=0.75),
     marker=dict(size=focus_df["pop"], sizemode="area", sizeref=sizeref,
-                sizemin=4, color=PINK, opacity=focus_opacity,
+                sizemin=4, color=FOCUS_RED, opacity=focus_opacity,
                 line=dict(width=0.75, color="black")),
     customdata=focus_df[["year", "pop"]],
     hovertemplate=(f"<b>{focus}</b><br>"
@@ -157,8 +160,11 @@ fig.add_trace(go.Scatter(
                    "Population: %{customdata[1]:,.0f}<extra></extra>"),
 ))
 
+# Title compares to the selected continent, or "World" for anything but exactly one
+comparison_label = continents[0] if len(continents) == 1 else "World"
+
 fig.update_layout(
-    title=dict(text=f"{focus}'s Development Compared to the World ({snapshot_year})",
+    title=dict(text=f"{focus}'s Development Over Time Compared to {comparison_label} ({snapshot_year})",
                font=dict(size=14)),
     xaxis_title="GDP per capita ($)",
     yaxis_title="Life Expectancy (years)",
@@ -180,7 +186,7 @@ fig.update_xaxes(
 # ---------- Comparison bar charts (country vs. continent mean vs. global mean) ----------
 def comparison_bar(column, metric_name, prefix="", decimals=1):
     items = [
-        (focus, country_value(focus, snapshot_year, column), PINK),
+        (focus, country_value(focus, snapshot_year, column), FOCUS_RED),
         (f"{focus_continent} mean", continent_year_df[column].mean(),
          continent_colors[focus_continent]),
         ("Global mean", year_df[column].mean(), GLOBAL_GRAY),
