@@ -45,9 +45,21 @@ st.markdown(
     unsafe_allow_html=True,
 )
 
-# Tweak these two numbers to make the charts taller or shorter
-BUBBLE_H = 470
+# Tweak BAR_H to make the charts taller or shorter
 BAR_H = 230          # fixed: extra bars get thinner instead of the chart growing
+BAR_GAP = 6          # vertical gap Streamlit puts between the two stacked bar charts (measured)
+BUBBLE_H = 2 * BAR_H + BAR_GAP   # bubble chart spans both bar charts, so top and bottom edges line up
+TOP_MARGIN = 62      # same top margin on every chart, so titles and plot areas line up
+
+def chart_title(text, subtitle=None):
+    """Same title treatment everywhere: left-aligned to the chart edge, same top, same font."""
+    t = dict(text=text, font=dict(size=14),
+             x=0, xref="container", xanchor="left",
+             y=1, yref="container", yanchor="top",
+             pad=dict(l=10, t=8))
+    if subtitle:
+        t["subtitle"] = dict(text=subtitle, font=dict(size=12, color="#555555"))
+    return t
 
 @st.cache_data
 def load_data():
@@ -186,14 +198,13 @@ comparison_label = continents[0] if len(continents) == 1 else "World"
 
 fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
-    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} in {snapshot_year}",
-               font=dict(size=14),
-               subtitle=dict(text=f"GDP per Capita ($) Versus Life Expectancy (years) in {snapshot_year}, Bubbles Sized by Population",
-                             font=dict(size=12, color="#555555"))),
+    title=chart_title(
+        f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} in {snapshot_year}",
+        subtitle=f"GDP per Capita ($) Versus Life Expectancy (years) in {snapshot_year}, Bubbles Sized by Population"),
     template="plotly_white",
     legend=dict(x=0.02, y=0.98),
     height=BUBBLE_H,
-    margin=dict(l=10, r=10, t=60, b=10),
+    margin=dict(l=10, r=10, t=TOP_MARGIN, b=10),
     font=dict(size=11),
 )
 
@@ -248,13 +259,13 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         hovertemplate=f"<b>%{{y}}</b><br>{metric_name}: {prefix}%{{x:,.{decimals}f}}<extra></extra>",
     ))
     bar.update_layout(
-        title=dict(text=title, font=dict(size=14)),
+        title=chart_title(title),
         xaxis=dict(range=[0, max(values) * 1.2]),
         yaxis=dict(autorange="reversed"),   # first (highest) bar on top
         template="plotly_white",
         height=BAR_H,                        # fixed; more bars = thinner bars
         bargap=0.25,
-        margin=dict(l=10, r=10, t=40, b=10),
+        margin=dict(l=10, r=10, t=TOP_MARGIN, b=10),
         font=dict(size=11),
         showlegend=False,
     )
