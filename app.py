@@ -6,6 +6,24 @@ import plotly.graph_objects as go
 
 st.set_page_config(page_title="My Dashboard", layout="wide")
 
+# ---------- Compact styling ----------
+st.markdown(
+    """
+    <style>
+    .block-container {padding-top: 2.5rem; padding-bottom: 0.5rem;}
+    div[data-testid="stMetricValue"] {font-size: 1.5rem;}
+    div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
+    div[data-testid="stVerticalBlock"] {gap: 0.4rem;}
+    h3 {padding: 0; margin: 0;}
+    </style>
+    """,
+    unsafe_allow_html=True,
+)
+
+# Tweak these two numbers to make the charts taller or shorter
+BUBBLE_H = 470
+BAR_H = 230
+
 @st.cache_data
 def load_data():
     df = pd.read_csv("gapminder_data.tsv", sep="\t")
@@ -75,18 +93,22 @@ def rank_text(column):
     return f"#{rank} of {len(continent_year_df)}"
 
 # ---------- KPIs ----------
-st.title("My Dashboard")
-c1, c2, c3, c4, c5 = st.columns(5)
-c1.metric(f"{focus} Life Expectancy, {snapshot_year}",
+st.markdown(f"### {focus} Dashboard")
+
+# Row 1: numeric KPIs
+n1, n2, n3 = st.columns(3)
+n1.metric(f"Life Expectancy, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "lifeExp"), 1))
-c2.metric(f"Life Exp. Rank in {focus_continent}, {snapshot_year}",
-          rank_text("lifeExp"))
-c3.metric(f"{focus} GDP per Capita, {snapshot_year}",
+n2.metric(f"GDP per Capita, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "gdpPercap"), 0, "$"))
-c4.metric(f"GDP per Capita Rank in {focus_continent}, {snapshot_year}",
-          rank_text("gdpPercap"))
-c5.metric(f"{focus} Population, {snapshot_year}",
+n3.metric(f"Population, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "pop")))
+
+# Row 2: rank KPIs, directly beneath their numeric KPIs
+r1, r2, r3 = st.columns(3)
+r1.metric(f"Life Expectancy Rank in {focus_continent}", rank_text("lifeExp"))
+r2.metric(f"GDP per Capita Rank in {focus_continent}", rank_text("gdpPercap"))
+r3.metric(f"Population Rank in {focus_continent}", rank_text("pop"))
 
 # ---------- Bubble chart ----------
 data_year = filtered[filtered["year"] == snapshot_year]
@@ -136,12 +158,15 @@ fig.add_trace(go.Scatter(
 ))
 
 fig.update_layout(
-    title=f"{focus}'s Development Compared to the World ({snapshot_year})",
+    title=dict(text=f"{focus}'s Development Compared to the World ({snapshot_year})",
+               font=dict(size=14)),
     xaxis_title="GDP per capita ($)",
     yaxis_title="Life Expectancy (years)",
     template="plotly_white",
     legend=dict(x=0.02, y=0.98),
-    height=650,
+    height=BUBBLE_H,
+    margin=dict(l=10, r=10, t=40, b=10),
+    font=dict(size=11),
 )
 
 tick_vals = np.logspace(2, 5, 8)
@@ -177,12 +202,14 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         hovertemplate=f"<b>%{{y}}</b><br>{metric_name}: {prefix}%{{x:,.{decimals}f}}<extra></extra>",
     ))
     bar.update_layout(
-        title=f"{metric_name}: {focus} vs. {focus_continent} vs. World ({snapshot_year})",
-        xaxis_title=metric_name,
+        title=dict(text=f"{metric_name}: {focus} vs. {focus_continent} vs. World ({snapshot_year})",
+                   font=dict(size=14)),
         xaxis=dict(range=[0, max(values) * 1.2]),
         yaxis=dict(autorange="reversed"),   # first (highest) bar on top
         template="plotly_white",
-        height=320,
+        height=BAR_H,
+        margin=dict(l=10, r=10, t=40, b=10),
+        font=dict(size=11),
         showlegend=False,
     )
     return bar
