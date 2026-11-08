@@ -101,18 +101,18 @@ def rank_text(column):
 
 # ---------- Title and KPIs ----------
 st.markdown(
-    f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard for {snapshot_year}",
+    f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard, {snapshot_year}",
     unsafe_allow_html=True
 )
 
 # Row 1: numeric KPIs (bold)
 with st.container(key="value_row"):
     n1, n2, n3 = st.columns(3)
-    n1.metric(f"Life Expectancy, {snapshot_year}",
+    n1.metric(f"Life Expectancy",
               fmt(country_value(focus, snapshot_year, "lifeExp"), 1))
-    n2.metric(f"GDP per Capita, {snapshot_year}",
+    n2.metric(f"GDP per Capita",
               fmt(country_value(focus, snapshot_year, "gdpPercap"), 0, "$"))
-    n3.metric(f"Population, {snapshot_year}",
+    n3.metric(f"Population",
               fmt(country_value(focus, snapshot_year, "pop")))
 
 # Row 2: rank KPIs (smaller), directly beneath their numeric KPIs
