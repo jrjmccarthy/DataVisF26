@@ -100,7 +100,10 @@ def rank_text(column):
     return f"#{rank} of {len(continent_year_df)}"
 
 # ---------- Title and KPIs ----------
-st.markdown(f"### {focus}'s Gapminder Dashboard")
+st.markdown(
+    f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard",
+    unsafe_allow_html=True
+)
 
 # Row 1: numeric KPIs (bold)
 with st.container(key="value_row"):
