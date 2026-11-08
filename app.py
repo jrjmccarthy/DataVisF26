@@ -30,16 +30,16 @@ st.markdown(
     h3 {padding: 0; margin: 0;}
 
     /* Value KPIs: bold red values, bold titles */
-    div[data-testid="stMetricValue"] {font-size: 1.5rem; font-weight: 700;}
-    div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
-    .st-key-value_row div[data-testid="stMetricValue"],
-    .st-key-value_row div[data-testid="stMetricValue"] * {color: #D7191C;}
-    .st-key-value_row div[data-testid="stMetricLabel"],
-    .st-key-value_row div[data-testid="stMetricLabel"] * {font-weight: 700; color: #000;}
+    [data-testid="stMetricValue"] {font-size: 1.5rem; font-weight: 700;}
+    [data-testid="stMetricLabel"] p {font-size: 0.75rem;}
+    .st-key-value_row [data-testid="stMetricValue"],
+    .st-key-value_row [data-testid="stMetricValue"] * {color: #D7191C !important;}
+    .st-key-value_row [data-testid="stMetricLabel"],
+    .st-key-value_row [data-testid="stMetricLabel"] * {font-weight: 700 !important; color: #000 !important;}
 
     /* Rank KPIs: smaller than the value KPIs */
-    .st-key-rank_row div[data-testid="stMetricValue"] {font-size: 1.05rem; font-weight: 400;}
-    .st-key-rank_row div[data-testid="stMetricLabel"] p {font-size: 0.65rem;}
+    .st-key-rank_row [data-testid="stMetricValue"] {font-size: 1.05rem; font-weight: 400;}
+    .st-key-rank_row [data-testid="stMetricLabel"] p {font-size: 0.65rem;}
     </style>
     """,
     unsafe_allow_html=True,
