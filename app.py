@@ -186,7 +186,7 @@ comparison_label = continents[0] if len(continents) == 1 else "World"
 
 fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
-    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label}",
+    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} in {snapshot_year}",
                font=dict(size=14),
                subtitle=dict(text=f"GDP per Capita ($) Versus Life Expectancy (years) in {snapshot_year}, Bubbles Sized by Population",
                              font=dict(size=12, color="#555555"))),
