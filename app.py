@@ -71,14 +71,10 @@ continents = st.sidebar.multiselect(
     key=f"continents_{focus}",
 )
 
-min_val, max_val = float(df["lifeExp"].min()), float(df["lifeExp"].max())
-value_range = st.sidebar.slider("Life expectancy (bubble chart)",
-                                min_val, max_val, (min_val, max_val))
-
 # ---------- Filtered data (bubble chart background) ----------
 mask = (
     df["continent"].isin(continents)
-    & df["lifeExp"].between(*value_range)
+
 )
 filtered = df[mask]
 
