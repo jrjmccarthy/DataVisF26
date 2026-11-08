@@ -30,10 +30,16 @@ st.markdown(
     """
     <style>
     .block-container {padding-top: 2.5rem; padding-bottom: 0.5rem;}
-    div[data-testid="stMetricValue"] {font-size: 1.5rem;}
-    div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
     div[data-testid="stVerticalBlock"] {gap: 0.4rem;}
     h3 {padding: 0; margin: 0;}
+
+    /* Value KPIs: bold */
+    div[data-testid="stMetricValue"] {font-size: 1.5rem; font-weight: 700;}
+    div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
+
+    /* Rank KPIs: smaller than the value KPIs */
+    .st-key-rank_row div[data-testid="stMetricValue"] {font-size: 1.05rem; font-weight: 400;}
+    .st-key-rank_row div[data-testid="stMetricLabel"] p {font-size: 0.65rem;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -71,16 +77,8 @@ continents = st.sidebar.multiselect(
     key=f"continents_{focus}",
 )
 
-min_val, max_val = float(df["lifeExp"].min()), float(df["lifeExp"].max())
-value_range = st.sidebar.slider("Life expectancy (bubble chart)",
-                                min_val, max_val, (min_val, max_val))
-
 # ---------- Filtered data (bubble chart background) ----------
-mask = (
-    df["continent"].isin(continents)
-    & df["lifeExp"].between(*value_range)
-)
-filtered = df[mask]
+filtered = df[df["continent"].isin(continents)]
 
 # ---------- Helpers ----------
 year_df = df[df["year"] == snapshot_year]
@@ -104,7 +102,7 @@ def rank_text(column):
 # ---------- Title and KPIs ----------
 st.markdown(f"### {focus}'s Gapminder Dashboard")
 
-# Row 1: numeric KPIs
+# Row 1: numeric KPIs (bold)
 n1, n2, n3 = st.columns(3)
 n1.metric(f"Life Expectancy, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "lifeExp"), 1))
@@ -113,11 +111,12 @@ n2.metric(f"GDP per Capita, {snapshot_year}",
 n3.metric(f"Population, {snapshot_year}",
           fmt(country_value(focus, snapshot_year, "pop")))
 
-# Row 2: rank KPIs, directly beneath their numeric KPIs
-r1, r2, r3 = st.columns(3)
-r1.metric(f"Life Expectancy Rank in {focus_continent}", rank_text("lifeExp"))
-r2.metric(f"GDP per Capita Rank in {focus_continent}", rank_text("gdpPercap"))
-r3.metric(f"Population Rank in {focus_continent}", rank_text("pop"))
+# Row 2: rank KPIs (smaller), directly beneath their numeric KPIs
+with st.container(key="rank_row"):
+    r1, r2, r3 = st.columns(3)
+    r1.metric(f"Life Expectancy Rank in {focus_continent}", rank_text("lifeExp"))
+    r2.metric(f"GDP per Capita Rank in {focus_continent}", rank_text("gdpPercap"))
+    r3.metric(f"Population Rank in {focus_continent}", rank_text("pop"))
 
 # ---------- Bubble chart ----------
 data_year = filtered[filtered["year"] == snapshot_year]
@@ -194,17 +193,17 @@ fig.update_xaxes(
 extra_continents = [c for c in continents if c != focus_continent]
 
 def comparison_bar(column, metric_name, prefix="", decimals=1):
-    # (label, value, solid color); continent means are faded below to match the bubbles
+    # (label, value, solid color, is_continent, is_focus)
     items = [
-        (focus, country_value(focus, snapshot_year, column), FOCUS_RED, False),
+        (focus, country_value(focus, snapshot_year, column), FOCUS_RED, False, True),
         (f"{focus_continent} mean", continent_year_df[column].mean(),
-         continent_colors[focus_continent], True),
-        ("Global mean", year_df[column].mean(), GLOBAL_GRAY, False),
+         continent_colors[focus_continent], True, False),
+        ("Global mean", year_df[column].mean(), GLOBAL_GRAY, False, False),
     ]
     for c in extra_continents:
         items.append((f"{c} mean",
                       year_df.loc[year_df["continent"] == c, column].mean(),
-                      continent_colors[c], True))
+                      continent_colors[c], True, False))
 
     items = [i for i in items if i[1] is not None and not pd.isna(i[1])]
     items.sort(key=lambda t: t[1], reverse=True)   # highest to lowest
@@ -212,6 +211,9 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
     labels = [i[0] for i in items]
     values = [i[1] for i in items]
     colors = [with_opacity(i[2], BG_OPACITY) if i[3] else i[2] for i in items]
+    # Black outline around the selected country's bar only
+    line_colors = ["black" if i[4] else "white" for i in items]
+    line_widths = [1.5 if i[4] else 0.5 for i in items]
 
     if extra_continents:
         title = f"{metric_name}: {focus} vs. Continents vs. World ({snapshot_year})"
@@ -222,7 +224,7 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         x=values,
         y=labels,
         orientation="h",
-        marker=dict(color=colors, line=dict(width=0.5, color="white")),
+        marker=dict(color=colors, line=dict(color=line_colors, width=line_widths)),
         text=[f"{prefix}{v:,.{decimals}f}" for v in values],
         textposition="outside",
         hovertemplate=f"<b>%{{y}}</b><br>{metric_name}: {prefix}%{{x:,.{decimals}f}}<extra></extra>",
@@ -245,6 +247,6 @@ gdp_bar = comparison_bar("gdpPercap", "GDP per Capita ($)", prefix="$", decimals
 
 # ---------- Layout ----------
 left, right = st.columns(2)
-left.plotly_chart(fig, use_container_width=True)
-right.plotly_chart(le_bar, use_container_width=True)
-right.plotly_chart(gdp_bar, use_container_width=True)
+left.plotly_chart(fig, width="stretch")
+right.plotly_chart(le_bar, width="stretch")
+right.plotly_chart(gdp_bar, width="stretch")
