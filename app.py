@@ -15,6 +15,7 @@ def load_data():
 df = load_data()
 
 PINK = "#FF00BF"
+GLOBAL_GRAY = "#7F7F7F"
 continent_colors = {
     "Asia": "#4C78A8",
     "Europe": "#F2CF5B",
@@ -29,13 +30,18 @@ st.sidebar.header("Filters")
 country_list = sorted(df["country"].unique())
 default_idx = country_list.index("Peru") if "Peru" in country_list else 0
 focus = st.sidebar.selectbox("Focus country", country_list, index=default_idx)
+focus_continent = df.loc[df["country"] == focus, "continent"].iloc[0]
 
 years = sorted(df["year"].unique())
 snapshot_year = st.sidebar.selectbox("Snapshot year", years, index=len(years) - 1)
 
+# The key includes the focus country, so the default resets to that
+# country's continent whenever a new focus country is picked.
 continents = st.sidebar.multiselect(
-    "Continent (bubble chart)", df["continent"].unique(),
-    default=list(df["continent"].unique())
+    "Continent (bubble chart)",
+    options=list(df["continent"].unique()),
+    default=[focus_continent],
+    key=f"continents_{focus}",
 )
 
 min_val, max_val = float(df["lifeExp"].min()), float(df["lifeExp"].max())
@@ -133,29 +139,32 @@ fig.update_xaxes(
     ticktext=[f"${x:,.0f}" for x in tick_vals],
 )
 
-# ---------- Horizontal bar chart: focus country's continent ----------
-focus_continent = df.loc[df["country"] == focus, "continent"].iloc[0]
+# ---------- Bar chart: country vs. continent mean vs. global mean ----------
+year_df = df[df["year"] == snapshot_year]
+country_le = country_value(focus, snapshot_year, "lifeExp")
+continent_mean = year_df.loc[year_df["continent"] == focus_continent, "lifeExp"].mean()
+global_mean = year_df["lifeExp"].mean()
 
-# Ascending order puts the highest life expectancy at the top of a horizontal bar chart
-bar_df = (df[(df["continent"] == focus_continent) & (df["year"] == snapshot_year)]
-          .sort_values("lifeExp"))
-
-bar_colors = [PINK if c == focus else continent_colors[focus_continent]
-              for c in bar_df["country"]]
+labels = [focus, f"{focus_continent} mean", "Global mean"]
+values = [country_le, continent_mean, global_mean]
+colors = [PINK, continent_colors[focus_continent], GLOBAL_GRAY]
 
 bar_fig = go.Figure(go.Bar(
-    x=bar_df["lifeExp"],
-    y=bar_df["country"],
+    x=values,
+    y=labels,
     orientation="h",
-    marker_color=bar_colors,
+    marker_color=colors,
+    text=[f"{v:.1f}" if v is not None else "N/A" for v in values],
+    textposition="outside",
     hovertemplate="<b>%{y}</b><br>Life expectancy: %{x:.1f}<extra></extra>",
 ))
 bar_fig.update_layout(
-    title=f"Life Expectancy in {focus_continent} ({snapshot_year})",
+    title=f"Life Expectancy: {focus} vs. {focus_continent} vs. World ({snapshot_year})",
     xaxis_title="Life Expectancy (years)",
-    yaxis=dict(categoryorder="array", categoryarray=bar_df["country"].tolist()),
+    xaxis=dict(range=[0, max(v for v in values if v is not None) * 1.15]),
+    yaxis=dict(autorange="reversed"),   # first label on top
     template="plotly_white",
-    height=max(650, 18 * len(bar_df) + 120),   # taller for big continents like Africa
+    height=350,
     showlegend=False,
 )
 
