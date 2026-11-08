@@ -101,7 +101,7 @@ def rank_text(column):
 
 # ---------- Title and KPIs ----------
 st.markdown(
-    f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard",
+    f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard for {snapshot_year}",
     unsafe_allow_html=True
 )
 
