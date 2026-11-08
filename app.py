@@ -12,11 +12,11 @@ st.set_page_config(page_title="Gapminder Dashboard", layout="wide")
 FOCUS_RED = "#D7191C"
 GLOBAL_GRAY = "#7F7F7F"
 continent_colors = {
-    "Asia": "#1F78B4",       # strong blue
-    "Europe": "#EDC948",     # gold
-    "Africa": "#4CA64C",     # green
+    "Asia": "#2F4B7C",       # navy blue
+    "Europe": "#E6AB02",     # gold
+    "Africa": "#B2DF8A",     # green
     "Americas": "#9B59B6",   # violet
-    "Oceania": "#8C6D4F",    # brown
+    "Oceania": "#88CCEE",    # brown
 }
 CONTINENT_OPACITY = 1.0        # continent bubbles and bars are fully solid
 FOCUS_OTHER_YEAR_OPACITY = 0.30   # the focus country's non-snapshot years stay faded
