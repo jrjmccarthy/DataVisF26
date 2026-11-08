@@ -182,7 +182,7 @@ fig.add_trace(go.Scatter(
 comparison_label = continents[0] if len(continents) == 1 else "World"
 
 fig.update_layout(
-    title=dict(text=f"{focus}'s Development Over Time Compared to {comparison_label} ({snapshot_year})",
+    title=dict(text=f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} ({snapshot_year})",
                font=dict(size=14)),
     xaxis_title="GDP per capita ($)",
     yaxis_title="Life Expectancy (years)",
@@ -227,7 +227,7 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
     colors = [i[2] for i in items]   # solid colors, no fading
     # Black outline around the selected country's bar only
     line_colors = ["black" if i[4] else "white" for i in items]
-    line_widths = [1.5 if i[4] else 0.5 for i in items]
+    line_widths = [0.75 if i[4] else 0.5 for i in items]
 
     if extra_continents:
         title = f"{metric_name}: {focus} vs. Continents vs. World ({snapshot_year})"
