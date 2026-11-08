@@ -18,18 +18,22 @@ continent_colors = {
     "Americas": "#9B59B6",   # violet
     "Oceania": "#8C6D4F",    # brown
 }
+BG_OPACITY = 0.30   # continent opacity, shared by the bubbles and the bars
+
+def with_opacity(hex_color, opacity):
+    h = hex_color.lstrip("#")
+    r, g, b = (int(h[i:i + 2], 16) for i in (0, 2, 4))
+    return f"rgba({r},{g},{b},{opacity})"
 
 # ---------- Compact styling ----------
 st.markdown(
-    f"""
+    """
     <style>
-    .block-container {{padding-top: 2.5rem; padding-bottom: 0.5rem;}}
-    div[data-testid="stMetricValue"],
-    div[data-testid="stMetricValue"] * {{font-size: 1.5rem; color: {FOCUS_RED};}}
-    div[data-testid="stMetricLabel"],
-    div[data-testid="stMetricLabel"] * {{font-size: 0.75rem; color: {FOCUS_RED};}}
-    div[data-testid="stVerticalBlock"] {{gap: 0.4rem;}}
-    h3 {{padding: 0; margin: 0;}}
+    .block-container {padding-top: 2.5rem; padding-bottom: 0.5rem;}
+    div[data-testid="stMetricValue"] {font-size: 1.5rem;}
+    div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
+    div[data-testid="stVerticalBlock"] {gap: 0.4rem;}
+    h3 {padding: 0; margin: 0;}
     </style>
     """,
     unsafe_allow_html=True,
@@ -37,7 +41,7 @@ st.markdown(
 
 # Tweak these two numbers to make the charts taller or shorter
 BUBBLE_H = 470
-BAR_H = 230          # height with the default 3 bars; grows a little per extra bar
+BAR_H = 230          # fixed: extra bars get thinner instead of the chart growing
 
 @st.cache_data
 def load_data():
@@ -121,7 +125,6 @@ focus_df = df[df["country"] == focus].sort_values("year")
 
 # Fixed scale so bubble sizes don't change when filters change
 sizeref = 2.0 * df["pop"].max() / (100 ** 2)
-BG_OPACITY = 0.30
 
 fig = go.Figure()
 
@@ -191,23 +194,24 @@ fig.update_xaxes(
 extra_continents = [c for c in continents if c != focus_continent]
 
 def comparison_bar(column, metric_name, prefix="", decimals=1):
+    # (label, value, solid color); continent means are faded below to match the bubbles
     items = [
-        (focus, country_value(focus, snapshot_year, column), FOCUS_RED),
+        (focus, country_value(focus, snapshot_year, column), FOCUS_RED, False),
         (f"{focus_continent} mean", continent_year_df[column].mean(),
-         continent_colors[focus_continent]),
-        ("Global mean", year_df[column].mean(), GLOBAL_GRAY),
+         continent_colors[focus_continent], True),
+        ("Global mean", year_df[column].mean(), GLOBAL_GRAY, False),
     ]
     for c in extra_continents:
         items.append((f"{c} mean",
                       year_df.loc[year_df["continent"] == c, column].mean(),
-                      continent_colors[c]))
+                      continent_colors[c], True))
 
     items = [i for i in items if i[1] is not None and not pd.isna(i[1])]
     items.sort(key=lambda t: t[1], reverse=True)   # highest to lowest
 
     labels = [i[0] for i in items]
     values = [i[1] for i in items]
-    colors = [i[2] for i in items]
+    colors = [with_opacity(i[2], BG_OPACITY) if i[3] else i[2] for i in items]
 
     if extra_continents:
         title = f"{metric_name}: {focus} vs. Continents vs. World ({snapshot_year})"
@@ -218,7 +222,7 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         x=values,
         y=labels,
         orientation="h",
-        marker_color=colors,
+        marker=dict(color=colors, line=dict(width=0.5, color="white")),
         text=[f"{prefix}{v:,.{decimals}f}" for v in values],
         textposition="outside",
         hovertemplate=f"<b>%{{y}}</b><br>{metric_name}: {prefix}%{{x:,.{decimals}f}}<extra></extra>",
@@ -228,7 +232,8 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         xaxis=dict(range=[0, max(values) * 1.2]),
         yaxis=dict(autorange="reversed"),   # first (highest) bar on top
         template="plotly_white",
-        height=BAR_H + 20 * len(extra_continents),
+        height=BAR_H,                        # fixed; more bars = thinner bars
+        bargap=0.25,
         margin=dict(l=10, r=10, t=40, b=10),
         font=dict(size=11),
         showlegend=False,
