@@ -34,7 +34,8 @@ st.markdown(
     div[data-testid="stMetricLabel"] p {font-size: 0.75rem;}
     .st-key-value_row div[data-testid="stMetricValue"],
     .st-key-value_row div[data-testid="stMetricValue"] * {color: #D7191C;}
-    .st-key-value_row div[data-testid="stMetricLabel"] p {font-weight: 700;}
+    .st-key-value_row div[data-testid="stMetricLabel"],
+    .st-key-value_row div[data-testid="stMetricLabel"] * {font-weight: 700; color: #000;}
 
     /* Rank KPIs: smaller than the value KPIs */
     .st-key-rank_row div[data-testid="stMetricValue"] {font-size: 1.05rem; font-weight: 400;}
@@ -152,6 +153,7 @@ fig.add_trace(go.Scatter(
     y=focus_df["lifeExp"],
     mode="lines+markers",
     name=focus,
+    showlegend=False,   # the legend entry comes from the solid proxy trace below
     line=dict(color="black", width=0.75),
     marker=dict(size=focus_df["pop"], sizemode="area", sizeref=sizeref,
                 sizemin=4, color=FOCUS_RED, opacity=focus_opacity,
@@ -162,6 +164,18 @@ fig.add_trace(go.Scatter(
                    "GDP per capita: $%{x:,.0f}<br>"
                    "Life expectancy: %{y:.1f}<br>"
                    "Population: %{customdata[1]:,.0f}<extra></extra>"),
+))
+
+# Legend-only entry: shows the selected country at full opacity
+fig.add_trace(go.Scatter(
+    x=[None], y=[None],
+    mode="lines+markers",
+    name=focus,
+    line=dict(color="black", width=0.75),
+    marker=dict(size=10, color=FOCUS_RED, opacity=1,
+                line=dict(width=0.75, color="black")),
+    hoverinfo="skip",
+    showlegend=True,
 ))
 
 # Title compares to the selected continent, or "World" for anything but exactly one
