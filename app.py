@@ -219,7 +219,7 @@ for rank, (continent, color) in enumerate(continent_colors.items(), start=2):
     ))
 
 # Title compares to the selected continent, or "World" for anything but exactly one
-comparison_label = continents[0] if len(continents) == 1 else "World"
+comparison_label = continents[0] if len(continents) == 1 else "the World"
 
 fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
