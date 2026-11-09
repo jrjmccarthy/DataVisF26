@@ -27,7 +27,9 @@ st.markdown(
     <style>
     .block-container {padding-top: 2.5rem; padding-bottom: 0.5rem;}
     div[data-testid="stVerticalBlock"] {gap: 0.4rem;}
-    h3 {padding: 0; margin: 0;}
+    [data-testid="stMarkdownContainer"] h3 {padding: 12px 0 0 0 !important; margin: 0 !important;}
+    .st-key-title_row {height: calc(2.1rem + 12px) !important; min-height: calc(2.1rem + 12px) !important; margin-bottom: 0.9rem;}    /* title box fits its text; margin = space before the KPIs */
+    .st-key-rank_row {margin-bottom: 1.1rem;}   /* space between the KPIs and the charts */
 
     /* Value KPIs: bold red values, bold titles */
     [data-testid="stMetricValue"] {font-size: 1.5rem; font-weight: 700;}
@@ -46,7 +48,7 @@ st.markdown(
 )
 
 # Tweak BAR_H to make the charts taller or shorter
-BAR_H = 230          # fixed: extra bars get thinner instead of the chart growing
+BAR_H = 214          # fixed: extra bars get thinner instead of the chart growing
 BAR_GAP = 6          # vertical gap Streamlit puts between the two stacked bar charts (measured)
 BUBBLE_H = 2 * BAR_H + BAR_GAP   # bubble chart spans both bar charts, so top and bottom edges line up
 TOP_MARGIN = 62      # same top margin on every chart, so titles and plot areas line up
@@ -112,10 +114,11 @@ def rank_text(column):
     return f"#{rank} of {len(continent_year_df)}"
 
 # ---------- Title and KPIs ----------
-st.markdown(
-    f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard, {snapshot_year}",
-    unsafe_allow_html=True
-)
+with st.container(key="title_row"):
+    st.markdown(
+        f"### <span style='color:{FOCUS_RED}'>{focus}'s</span> Gapminder Dashboard, {snapshot_year}",
+        unsafe_allow_html=True
+    )
 
 # Row 1: numeric KPIs (bold)
 with st.container(key="value_row"):
