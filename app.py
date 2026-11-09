@@ -225,7 +225,7 @@ fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
     title=chart_title(
         f"{focus}'s Development (1952 to 2007) vs. {comparison_label} ({snapshot_year})",
-        subtitle=f"GDP per Capita ($) Versus Life Expectancy (years) in {snapshot_year}, Bubbles Sized by Population"),
+        subtitle=f"GDP per Capita ($) vs. Life Expectancy (years) in {snapshot_year}. Bubbles Sized by Population"),
     template="plotly_white",
     legend=dict(x=0.02, y=0.98, tracegroupgap=0),   # tracegroupgap=0: tight spacing between entries
     height=BUBBLE_H,
