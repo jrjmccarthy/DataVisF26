@@ -270,9 +270,9 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
     line_widths = [0.75 if i[4] else 0.5 for i in items]
 
     if extra_continents:
-        title = f"{metric_name} in {focus}, Selected Continents, and the World"
+        title = f"{metric_name} in {focus}, Selected Continents, and Globally"
     else:
-        title = f"{metric_name} in {focus}, {focus_continent}, and the World"
+        title = f"{metric_name} in {focus}, {focus_continent}, and Globally"
 
     bar = go.Figure(go.Bar(
         x=values,
