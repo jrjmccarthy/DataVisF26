@@ -155,6 +155,8 @@ for continent, color in continent_colors.items():
         y=cdf["lifeExp"],
         mode="markers",
         name=continent,
+        legendgroup=continent,   # legend entry comes from the equal-size proxy below
+        showlegend=False,
         marker=dict(size=cdf["pop"], sizemode="area", sizeref=sizeref,
                     sizemin=4, color=color, opacity=CONTINENT_OPACITY,
                     line=dict(width=0.5, color="white")),
@@ -173,6 +175,7 @@ fig.add_trace(go.Scatter(
     y=focus_df["lifeExp"],
     mode="lines+markers",
     name=focus,
+    legendgroup="focus",
     showlegend=False,   # the legend entry comes from the solid proxy trace below
     line=dict(color="black", width=0.75),
     marker=dict(size=focus_df["pop"], sizemode="area", sizeref=sizeref,
@@ -186,17 +189,34 @@ fig.add_trace(go.Scatter(
                    "Population: %{customdata[1]:,.0f}<extra></extra>"),
 ))
 
-# Legend-only entry: shows the selected country at full opacity
+# Legend entries: country first, then the selected continents, all with the same
+# symbol size and full opacity. They share a legendgroup with the real traces,
+# so clicking an entry still hides/shows its bubbles.
+LEGEND_SYMBOL = 12
 fig.add_trace(go.Scatter(
     x=[None], y=[None],
     mode="lines+markers",
     name=focus,
+    legendgroup="focus",
+    legendrank=1,
     line=dict(color="black", width=0.75),
-    marker=dict(size=10, color=FOCUS_RED, opacity=1,
+    marker=dict(size=LEGEND_SYMBOL, color=FOCUS_RED, opacity=1,
                 line=dict(width=0.75, color="black")),
     hoverinfo="skip",
     showlegend=True,
 ))
+for rank, (continent, color) in enumerate(continent_colors.items(), start=2):
+    fig.add_trace(go.Scatter(
+        x=[None], y=[None],
+        mode="markers",
+        name=continent,
+        legendgroup=continent,
+        legendrank=rank,
+        marker=dict(size=LEGEND_SYMBOL, color=color, opacity=1,
+                    line=dict(width=0.5, color="white")),
+        hoverinfo="skip",
+        showlegend=continent in continents,
+    ))
 
 # Title compares to the selected continent, or "World" for anything but exactly one
 comparison_label = continents[0] if len(continents) == 1 else "World"
