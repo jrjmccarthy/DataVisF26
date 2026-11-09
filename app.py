@@ -51,7 +51,9 @@ st.markdown(
 BAR_H = 214          # fixed: extra bars get thinner instead of the chart growing
 BAR_GAP = 6          # vertical gap Streamlit puts between the two stacked bar charts (measured)
 BUBBLE_H = 2 * BAR_H + BAR_GAP   # bubble chart spans both bar charts, so top and bottom edges line up
-TOP_MARGIN = 62      # same top margin on every chart, so titles and plot areas line up
+TOP_MARGIN = 62      # bubble chart: room for the title plus its subtitle
+BAR_TOP_MARGIN = 38  # bar charts: title only, so the plot starts closer to it
+BAR_BOTTOM_MARGIN = 24   # keeps the first bar chart's axis labels clear of the second chart's title
 
 def chart_title(text, subtitle=None):
     """Same title treatment everywhere: left-aligned to the chart edge, same top, same font."""
@@ -268,7 +270,7 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
         template="plotly_white",
         height=BAR_H,                        # fixed; more bars = thinner bars
         bargap=0.25,
-        margin=dict(l=10, r=10, t=TOP_MARGIN, b=10),
+        margin=dict(l=10, r=10, t=BAR_TOP_MARGIN, b=BAR_BOTTOM_MARGIN),
         font=dict(size=11),
         showlegend=False,
     )
