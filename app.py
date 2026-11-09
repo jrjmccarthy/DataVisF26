@@ -227,7 +227,7 @@ fig.update_layout(
         f"{focus}'s Development From 1952 to 2007 Compared to {comparison_label} in {snapshot_year}",
         subtitle=f"GDP per Capita ($) Versus Life Expectancy (years) in {snapshot_year}, Bubbles Sized by Population"),
     template="plotly_white",
-    legend=dict(x=0.02, y=0.98),
+    legend=dict(x=0.02, y=0.98, tracegroupgap=0),   # tracegroupgap=0: tight spacing between entries
     height=BUBBLE_H,
     margin=dict(l=10, r=10, t=TOP_MARGIN, b=10),
     font=dict(size=11),
@@ -270,9 +270,9 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
     line_widths = [0.75 if i[4] else 0.5 for i in items]
 
     if extra_continents:
-        title = f"{metric_name}: {focus} vs. Continents vs. World"
+        title = f"{metric_name} in {focus}, Selected Continents, and the World"
     else:
-        title = f"{metric_name}: {focus} vs. {focus_continent} vs. World"
+        title = f"{metric_name} in {focus}, {focus_continent}, and the World"
 
     bar = go.Figure(go.Bar(
         x=values,
