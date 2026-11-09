@@ -224,7 +224,7 @@ comparison_label = continents[0] if len(continents) == 1 else "the World"
 fig.update_layout(
     # Axis titles live in the subtitle instead of beside the axes
     title=chart_title(
-        f"{focus}'s Development (1952 to 2007) Compared to {comparison_label} ({snapshot_year})",
+        f"{focus}'s Development (1952 to 2007) vs. {comparison_label} ({snapshot_year})",
         subtitle=f"GDP per Capita ($) Versus Life Expectancy (years) in {snapshot_year}, Bubbles Sized by Population"),
     template="plotly_white",
     legend=dict(x=0.02, y=0.98, tracegroupgap=0),   # tracegroupgap=0: tight spacing between entries
@@ -270,9 +270,9 @@ def comparison_bar(column, metric_name, prefix="", decimals=1):
     line_widths = [0.75 if i[4] else 0.5 for i in items]
 
     if extra_continents:
-        title = f"{metric_name} in {focus}, Selected Continents, and Globally"
+        title = f"{metric_name}"
     else:
-        title = f"{metric_name} in {focus}, {focus_continent}, and Globally"
+        title = f"{metric_name}"
 
     bar = go.Figure(go.Bar(
         x=values,
